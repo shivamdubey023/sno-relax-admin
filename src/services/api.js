@@ -1,6 +1,8 @@
 import axios from "axios";
 
-const API_URL = "https://sno-relax-server.onrender.com/api/admin";
+// ✅ Always point to your backend server
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api/admin";
+
 
 // ------------------ USERS ------------------
 
@@ -13,7 +15,7 @@ export const getUser = (id) => axios.get(`${API_URL}/users/${id}`);
 // Create a new user
 export const createUser = (userData) => axios.post(`${API_URL}/users`, userData);
 
-// Update user (e.g., edit info)
+// Update user (e.g., edit or block)
 export const updateUser = (id, updatedData) =>
   axios.put(`${API_URL}/users/${id}`, updatedData);
 
@@ -22,21 +24,11 @@ export const deleteUser = (id) => axios.delete(`${API_URL}/users/${id}`);
 
 // ------------------ CONTENT ------------------
 
-// Get all content
 export const getContent = () => axios.get(`${API_URL}/content`);
-
-// Get single content item by ID
 export const getContentById = (id) => axios.get(`${API_URL}/content/${id}`);
-
-// Create new content
-export const createContent = (contentData) =>
-  axios.post(`${API_URL}/content`, contentData);
-
-// Update content
-export const updateContent = (id, updatedData) =>
-  axios.put(`${API_URL}/content/${id}`, updatedData);
-
-// Delete content
+export const createContent = (data) => axios.post(`${API_URL}/content`, data);
+export const updateContent = (id, data) =>
+  axios.put(`${API_URL}/content/${id}`, data);
 export const deleteContent = (id) => axios.delete(`${API_URL}/content/${id}`);
 
 // ------------------ ANALYTICS / STATS ------------------
