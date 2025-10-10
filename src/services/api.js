@@ -22,7 +22,10 @@ export const updateUser = (id, updatedData) =>
 // Delete a user
 export const deleteUser = (id) => axios.delete(`${API_URL}/users/${id}`);
 
-// ------------------ CONTENT ------------------
+// Admin login
+export const loginAdmin = (credentials) =>
+  axios.post(`${API_URL}/login`, credentials);
+
 
 // ------------------ CONTENT ------------------
 

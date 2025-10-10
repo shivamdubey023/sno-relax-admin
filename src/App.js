@@ -7,6 +7,8 @@ import Users from "./pages/Users";
 import Content from "./pages/Content";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
+import Login from "./pages/Login";
+
 
 function App() {
   return (
@@ -16,6 +18,7 @@ function App() {
         <div style={{ flex: 1 }}>
           <Topbar />
           <Routes>
+            <Route path="/login" element={<Login />} />
             <Route path="/" element={<Dashboard />} />
             <Route path="/users" element={<Users />} />
             <Route path="/content" element={<Content />} />
