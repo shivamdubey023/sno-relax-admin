@@ -5,6 +5,7 @@ import {
   updateContent,
   deleteContent,
 } from "../services/api";
+import ContentTable from "../components/ContentTable";
 
 const Content = () => {
   const [contentList, setContentList] = useState([]);
@@ -21,16 +22,20 @@ const Content = () => {
       const res = await getContent();
       setContentList(res.data);
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching content:", err);
     }
   };
 
   const handleAdd = async () => {
     if (!title || !description) return;
-    await createContent({ title, description });
-    setTitle("");
-    setDescription("");
-    fetchContent();
+    try {
+      await createContent({ title, description });
+      setTitle("");
+      setDescription("");
+      fetchContent();
+    } catch (err) {
+      console.error("Error adding content:", err);
+    }
   };
 
   const handleEdit = (content) => {
@@ -40,16 +45,24 @@ const Content = () => {
   };
 
   const handleUpdate = async () => {
-    await updateContent(editingId, { title, description });
-    setEditingId(null);
-    setTitle("");
-    setDescription("");
-    fetchContent();
+    try {
+      await updateContent(editingId, { title, description });
+      setEditingId(null);
+      setTitle("");
+      setDescription("");
+      fetchContent();
+    } catch (err) {
+      console.error("Error updating content:", err);
+    }
   };
 
   const handleDelete = async (id) => {
-    await deleteContent(id);
-    fetchContent();
+    try {
+      await deleteContent(id);
+      fetchContent();
+    } catch (err) {
+      console.error("Error deleting content:", err);
+    }
   };
 
   return (
@@ -78,27 +91,11 @@ const Content = () => {
         )}
       </div>
 
-      <table border="1" cellPadding="10" style={{ width: "100%", borderCollapse: "collapse" }}>
-        <thead>
-          <tr>
-            <th>Title</th>
-            <th>Description</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {contentList.map((item) => (
-            <tr key={item._id}>
-              <td>{item.title}</td>
-              <td>{item.description}</td>
-              <td>
-                <button onClick={() => handleEdit(item)}>Edit</button>
-                <button onClick={() => handleDelete(item._id)}>Delete</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <ContentTable
+        contentList={contentList}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
     </div>
   );
 };

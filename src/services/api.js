@@ -24,11 +24,21 @@ export const deleteUser = (id) => axios.delete(`${API_URL}/users/${id}`);
 
 // ------------------ CONTENT ------------------
 
+// ------------------ CONTENT ------------------
+
+// Get all content
 export const getContent = () => axios.get(`${API_URL}/content`);
+
+// Get content by ID
 export const getContentById = (id) => axios.get(`${API_URL}/content/${id}`);
+
+// Create new content
 export const createContent = (data) => axios.post(`${API_URL}/content`, data);
-export const updateContent = (id, data) =>
-  axios.put(`${API_URL}/content/${id}`, data);
+
+// Update content
+export const updateContent = (id, data) => axios.put(`${API_URL}/content/${id}`, data);
+
+// Delete content
 export const deleteContent = (id) => axios.delete(`${API_URL}/content/${id}`);
 
 // ------------------ ANALYTICS / STATS ------------------
