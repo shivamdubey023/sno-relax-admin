@@ -29,6 +29,11 @@ export const loginAdmin = (credentials) =>
 // Get chat stats for last 7 days
 export const getChatStats = () => axios.get(`${API_URL}/stats/chats`);
 
+// Community Posts
+export const getCommunityPosts = () => axios.get(`${API_URL}/community`);
+export const getCommunityPostById = (id) => axios.get(`${API_URL}/community/${id}`);
+export const updateCommunityPost = (id, data) => axios.put(`${API_URL}/community/${id}`, data);
+export const deleteCommunityPost = (id) => axios.delete(`${API_URL}/community/${id}`);
 
 // ------------------ CONTENT ------------------
 

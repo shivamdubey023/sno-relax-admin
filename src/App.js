@@ -8,6 +8,7 @@ import Content from "./pages/Content";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
+import CommunityAdmin from "./pages/CommunityAdmin";
 
 function AppLayout({ children }) {
   const location = useLocation();
@@ -30,6 +31,7 @@ function App() {
     <Router>
       <AppLayout>
         <Routes>
+          <Route path="/community-admin" element={<CommunityAdmin />} />
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<Dashboard />} />
           <Route path="/users" element={<Users />} />
