@@ -26,6 +26,9 @@ export const deleteUser = (id) => axios.delete(`${API_URL}/users/${id}`);
 export const loginAdmin = (credentials) =>
   axios.post(`${API_URL}/login`, credentials);
 
+// Get chat stats for last 7 days
+export const getChatStats = () => axios.get(`${API_URL}/stats/chats`);
+
 
 // ------------------ CONTENT ------------------
 

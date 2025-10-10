@@ -1,7 +1,24 @@
 // src/pages/Dashboard.jsx
 import React, { useEffect, useState } from "react";
-import { getStats, getUsers, getContent } from "../services/api";
-import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
+import {
+  getStats,
+  getUsers,
+  getContent,
+  getChatStats,
+} from "../services/api";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+} from "recharts";
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -11,9 +28,11 @@ const Dashboard = () => {
   });
   const [recentUsers, setRecentUsers] = useState([]);
   const [recentContent, setRecentContent] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [contentTypesData, setContentTypesData] = useState([]);
   const [chatActivityData, setChatActivityData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#AA336A"];
 
   useEffect(() => {
     fetchDashboardData();
@@ -22,8 +41,9 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     try {
       const statsRes = await getStats();
-      const contentRes = await getContent();
       const usersRes = await getUsers();
+      const contentRes = await getContent();
+      const chatStatsRes = await getChatStats();
 
       setStats({
         totalUsers: statsRes.data.totalUsers,
@@ -31,10 +51,10 @@ const Dashboard = () => {
         totalContent: contentRes.data.length,
       });
 
-      setRecentUsers(usersRes.data.slice(0, 5));
-      setRecentContent(contentRes.data.slice(0, 5));
+      setRecentUsers(usersRes.data.slice(-5).reverse());
+      setRecentContent(contentRes.data.slice(-5).reverse());
 
-      // Prepare content type distribution for Pie chart
+      // Prepare content types pie chart
       const typesCount = contentRes.data.reduce((acc, item) => {
         acc[item.type] = (acc[item.type] || 0) + 1;
         return acc;
@@ -45,18 +65,8 @@ const Dashboard = () => {
       }));
       setContentTypesData(pieData);
 
-      // Prepare chat activity (dummy for now, real API can be added)
-      // Example: 7 days chat counts
-      const chatData = [
-        { day: "Mon", chats: Math.floor(Math.random() * 20) },
-        { day: "Tue", chats: Math.floor(Math.random() * 20) },
-        { day: "Wed", chats: Math.floor(Math.random() * 20) },
-        { day: "Thu", chats: Math.floor(Math.random() * 20) },
-        { day: "Fri", chats: Math.floor(Math.random() * 20) },
-        { day: "Sat", chats: Math.floor(Math.random() * 20) },
-        { day: "Sun", chats: Math.floor(Math.random() * 20) },
-      ];
-      setChatActivityData(chatData);
+      // Set chat activity chart
+      setChatActivityData(chatStatsRes.data);
 
       setLoading(false);
     } catch (err) {
@@ -66,8 +76,6 @@ const Dashboard = () => {
   };
 
   if (loading) return <p>Loading dashboard...</p>;
-
-  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#AA336A"];
 
   return (
     <div style={{ padding: "20px" }}>
@@ -137,20 +145,6 @@ const Dashboard = () => {
 
       {/* Charts */}
       <div style={{ display: "flex", gap: "40px", marginTop: "40px", flexWrap: "wrap" }}>
-        {/* Users Chart */}
-        <div style={{ flex: 1, minWidth: "300px" }}>
-          <h3>Recent Users Growth</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={recentUsers.map((u, i) => ({ name: `User ${i + 1}`, joined: new Date(u.createdAt).toLocaleDateString() }))}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="joined" />
-              <YAxis />
-              <Tooltip />
-              <Line type="monotone" dataKey="name" stroke="#8884d8" />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-
         {/* Content Types Pie */}
         <div style={{ flex: 1, minWidth: "300px" }}>
           <h3>Content Types Distribution</h3>
