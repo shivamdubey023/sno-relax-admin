@@ -11,7 +11,7 @@ export default function AdminCommunityChat() {
   const messagesEndRef = useRef(null);
 
   const adminId = "ADMIN123"; // replace with actual admin auth ID
-  const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5000/api/community";
+  const API_BASE = process.env.REACT_APP_API_URL;
 
   // Load groups
   useEffect(() => {
