@@ -5,7 +5,7 @@ import {
   createContent,
   updateContent,
   deleteContent,
-} from "../api/api"; // Make sure this points to your API file
+} from "../services/api"; // Make sure this points to your API file
 import ContentTable from "../components/ContentTable";
 
 const Content = () => {

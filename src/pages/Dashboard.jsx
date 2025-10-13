@@ -1,6 +1,6 @@
 // src/pages/Dashboard.jsx
 import React, { useEffect, useState } from "react";
-import { getStats, getUsers, getContent, getChatStats } from "../api/api";
+import { getStats, getUsers, getContent, getChatStats } from "../services/api";
 import {
   LineChart,
   Line,

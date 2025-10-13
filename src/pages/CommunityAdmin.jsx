@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { fetchGroups } from "../api/api";
+import { fetchGroups } from "../services/api";
 import { io } from "socket.io-client";
 
 export default function CommunityAdmin() {
