@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Hardcoded backend URL
-const API_URL = "https://sno-relax-server.onrender.com/api/admin";
+const API_URL = "https://sno-relax-server.onrender.com";
 const COMMUNITY_URL = "https://sno-relax-server.onrender.com/api/community";
 
 // ------------------ USERS ------------------
