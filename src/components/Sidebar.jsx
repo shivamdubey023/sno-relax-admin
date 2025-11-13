@@ -9,7 +9,8 @@ const Sidebar = () => {
         <li><Link to="/" style={{ color: "white" }}>Dashboard</Link></li>
         <li><Link to="/users" style={{ color: "white" }}>Users</Link></li>
         <li><Link to="/content" style={{ color: "white" }}>Content</Link></li>
-        <li><Link to="/community-admin" style={{ color: "white" }}>Community Control</Link></li>
+  <li><Link to="/community-admin" style={{ color: "white" }}>Community Control</Link></li>
+  <li><Link to="/private-messages" style={{ color: "white" }}>Private Messages</Link></li>
         <li><Link to="/reports" style={{ color: "white" }}>Reports</Link></li>
         <li><Link to="/settings" style={{ color: "white" }}>Settings</Link></li>
       </ul>

@@ -41,3 +41,7 @@ export const deleteGroupMessage = (groupId, messageId) => axios.delete(`${COMMUN
 export const fetchAnnouncements = () => axios.get(`${API_URL}/announcements`).then(res => res.data);
 export const createAnnouncement = (data) => axios.post(`${API_URL}/announcement`, data).then(res => res.data);
 export const deleteAnnouncement = (id) => axios.delete(`${API_URL}/announcement/${id}`).then(res => res.data);
+
+// ------------------ PRIVATE MESSAGES (admin) ------------------
+export const fetchPrivateMessages = (userId) => axios.get(`${API_URL}/private-messages`, { params: { userId } }).then(res => res.data);
+export const sendPrivateMessageAdmin = (payload) => axios.post(`${API_URL}/private-message`, payload).then(res => res.data);

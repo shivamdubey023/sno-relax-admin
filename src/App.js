@@ -10,6 +10,7 @@ import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
 import CommunityAdmin from "./pages/CommunityAdmin";
+import PrivateMessages from "./pages/PrivateMessages";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // ---------------- Layout ----------------
@@ -89,6 +90,14 @@ function App() {
           element={
             <ProtectedRoute>
               <LayoutRoute element={CommunityAdmin} />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/private-messages" 
+          element={
+            <ProtectedRoute>
+              <LayoutRoute element={PrivateMessages} />
             </ProtectedRoute>
           } 
         />
