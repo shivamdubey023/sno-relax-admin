@@ -1,20 +1,20 @@
 import React, { useEffect, useState, useRef } from "react";
-import { fetchGroupsMongo, fetchGroupMessages, deleteGroupMessage, createGroupMongo, deleteGroupMongo, fetchAnnouncements, createAnnouncement } from "../services/api";
+import { fetchGroupsMongo, fetchGroupMessages, deleteGroupMessage, createGroupMongo, deleteGroupMongo, fetchGroupMembers, removeGroupMember, updateGroupMongo, clearGroupMessages } from "../services/api";
 import { io } from "socket.io-client";
 
 export default function CommunityAdmin() {
   const [groups, setGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [members, setMembers] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [creating, setCreating] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
   const [newGroupDesc, setNewGroupDesc] = useState("");
-  const [annTitle, setAnnTitle] = useState("");
-  const [annDesc, setAnnDesc] = useState("");
-  const [annLocation, setAnnLocation] = useState("");
-  const [annDateTime, setAnnDateTime] = useState("");
-  const [announcements, setAnnouncements] = useState([]);
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editDesc, setEditDesc] = useState("");
+  // announcements removed from CommunityAdmin UI
   const messagesEndRef = useRef(null);
 
   const adminId = "ADMIN123"; // replace with actual admin ID
@@ -31,17 +31,10 @@ export default function CommunityAdmin() {
         console.error("Error fetching groups:", err);
       }
     }
-    async function loadAnnouncements() {
-      try {
-        const res = await fetchAnnouncements();
-        if (res.ok) setAnnouncements(res.announcements);
-      } catch (err) {
-        console.error("Error fetching announcements:", err);
-      }
-    }
     loadGroups();
-    loadAnnouncements();
   }, []);
+
+  // Note: admin-only UI theme chooser removed — global theme control moved to Settings.
 
   // Initialize Socket.IO
   useEffect(() => {
@@ -62,9 +55,11 @@ export default function CommunityAdmin() {
       setMessages((prev) => prev.filter((m) => String(m._id || m.id) !== String(messageId)));
     });
 
-    // announcements pushed by server
+    // announcements pushed by server (no local UI rendered now)
+    // kept listener in case other parts of the app use it
     newSocket.on("announcementCreated", (announcement) => {
-      setAnnouncements((prev) => [announcement, ...prev]);
+      // no-op or could be used for notifications
+      // setAnnouncements((prev) => [announcement, ...prev]);
     });
 
     return () => newSocket.disconnect();
@@ -81,6 +76,13 @@ export default function CommunityAdmin() {
       try {
         const res = await fetchGroupMessages(selectedGroup._id || selectedGroup.id);
         if (res.ok) setMessages(res.messages || []);
+        // load members for admin view
+        try {
+          const mres = await fetchGroupMembers(selectedGroup._id || selectedGroup.id);
+          if (Array.isArray(mres)) setMembers(mres);
+          else if (mres && mres.ok) setMembers(mres.members || []);
+          else setMembers(mres.members || []);
+        } catch (e) { console.warn('Failed to load members', e); }
       } catch (e) {
         console.error("Failed to load group messages:", e);
       }
@@ -124,6 +126,55 @@ export default function CommunityAdmin() {
     }
   };
 
+  const handleRemoveMember = async (userId) => {
+    if (!selectedGroup) return;
+    if (!window.confirm('Remove this user from group?')) return;
+    try {
+      await removeGroupMember(selectedGroup._id || selectedGroup.id, userId);
+      setMembers((prev) => prev.filter(m => m.userId !== userId));
+      // also update groups list memberCount
+      setGroups(prev => prev.map(g => g._id === selectedGroup._id ? { ...g, memberCount: Math.max(0, (g.memberCount||g.members?.length||0) - 1) } : g));
+    } catch (e) {
+      console.error('Failed to remove member', e);
+      alert('Failed to remove member');
+    }
+  };
+
+  const handleEditGroup = () => {
+    if (!selectedGroup) return;
+    setEditing(true);
+    setEditName(selectedGroup.name || '');
+    setEditDesc(selectedGroup.description || '');
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selectedGroup) return;
+    try {
+      const res = await updateGroupMongo(selectedGroup._id || selectedGroup.id, { name: editName, description: editDesc });
+      const updated = res.group || res;
+      if (updated) {
+        setGroups(prev => prev.map(g => (String(g._id||g.id) === String(selectedGroup._id||selectedGroup.id) ? updated : g)));
+        setSelectedGroup(updated);
+        setEditing(false);
+      }
+    } catch (e) {
+      console.error('Failed to update group', e);
+      alert('Failed to update group');
+    }
+  };
+
+  const handleClearMessages = async () => {
+    if (!selectedGroup) return;
+    if (!window.confirm('Clear all messages in this group?')) return;
+    try {
+      const res = await clearGroupMessages(selectedGroup._id || selectedGroup.id);
+      if (res.ok) setMessages([]);
+    } catch (e) {
+      console.error('Failed to clear messages', e);
+      alert('Failed to clear messages');
+    }
+  };
+
   const handleCreateGroup = async () => {
     if (!newGroupName.trim()) return;
     setCreating(true);
@@ -152,25 +203,14 @@ export default function CommunityAdmin() {
     }
   };
 
-  const handleCreateAnnouncement = async () => {
-    try {
-      const payload = { title: annTitle, description: annDesc, location: annLocation, dateTime: annDateTime, createdBy: adminId };
-      const res = await createAnnouncement(payload);
-      if (res.ok) {
-        setAnnouncements((prev) => [res.announcement, ...prev]);
-        setAnnTitle(""); setAnnDesc(""); setAnnLocation(""); setAnnDateTime("");
-      }
-    } catch (e) {
-      console.error(e);
-      alert("Failed to create announcement");
-    }
-  };
+  // announcement creation/deletion UI removed per request; server listeners kept.
 
   return (
     <div className="flex h-screen bg-white text-black">
       {/* Sidebar */}
       <div className="w-1/4 p-4 border-r border-gray-300">
         <h2 className="text-xl font-bold mb-4">Groups</h2>
+        {/* Admin Settings removed — global theme now controlled in Settings page */}
               <div className="mb-4">
                 <input className="w-full mb-2 p-2 border rounded" placeholder="New group name" value={newGroupName} onChange={(e)=>setNewGroupName(e.target.value)} />
                 <input className="w-full mb-2 p-2 border rounded" placeholder="Description" value={newGroupDesc} onChange={(e)=>setNewGroupDesc(e.target.value)} />
@@ -179,16 +219,7 @@ export default function CommunityAdmin() {
                 </div>
               </div>
 
-              <div className="mb-4 mt-4 p-2 border rounded bg-gray-50">
-                <h3 className="font-semibold mb-2">Create Announcement</h3>
-                <input className="w-full mb-2 p-2 border rounded" placeholder="Title" value={annTitle} onChange={(e)=>setAnnTitle(e.target.value)} />
-                <textarea className="w-full mb-2 p-2 border rounded" placeholder="Description" value={annDesc} onChange={(e)=>setAnnDesc(e.target.value)} />
-                <input className="w-full mb-2 p-2 border rounded" placeholder="Location (optional)" value={annLocation} onChange={(e)=>setAnnLocation(e.target.value)} />
-                <input type="datetime-local" className="w-full mb-2 p-2 border rounded" value={annDateTime} onChange={(e)=>setAnnDateTime(e.target.value)} />
-                <div className="flex gap-2">
-                  <button className="px-3 py-1 bg-indigo-600 text-white rounded" onClick={handleCreateAnnouncement}>Post Announcement</button>
-                </div>
-              </div>
+        {/* Announcement creation removed from CommunityAdmin (handled elsewhere) */}
         <ul className="space-y-2">
           {groups.map((g) => (
             <li
@@ -209,11 +240,40 @@ export default function CommunityAdmin() {
       <div className="flex-1 flex flex-col">
         {selectedGroup ? (
           <>
-            <div className="p-4 border-b border-gray-300 font-semibold text-lg">
-              {selectedGroup.name} - Admin Chat
+            <div className="p-4 border-b border-gray-300 font-semibold text-lg flex items-center justify-between">
+              <div>
+                {editing ? (
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <input className="border p-1 rounded" value={editName} onChange={(e)=>setEditName(e.target.value)} />
+                    <input className="border p-1 rounded" value={editDesc} onChange={(e)=>setEditDesc(e.target.value)} />
+                    <button className="px-2 py-1 bg-green-500 text-white rounded" onClick={handleSaveEdit}>Save</button>
+                    <button className="px-2 py-1 bg-gray-300 rounded" onClick={()=>setEditing(false)}>Cancel</button>
+                  </div>
+                ) : (
+                  <div>{selectedGroup.name} - Admin Chat</div>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button className="px-2 py-1 bg-yellow-400 text-black rounded" onClick={handleEditGroup}>Edit</button>
+                <button className="px-2 py-1 bg-red-400 text-white rounded" onClick={handleClearMessages}>Clear Messages</button>
+              </div>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-50">
+              {/* members list for admin */}
+              {members && members.length > 0 && (
+                <div className="mb-4 p-3 bg-white rounded shadow-sm">
+                  <div className="font-semibold mb-2">Members</div>
+                  <ul>
+                    {members.map((m) => (
+                      <li key={m.userId} className="flex items-center justify-between mb-1">
+                        <span>{m.nickname || m.userId}</span>
+                        <button className="text-red-600 text-sm" onClick={()=>handleRemoveMember(m.userId)}>Remove</button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               {messages.map((m) => (
                 <div
                   key={m._id || m.id}
@@ -255,21 +315,7 @@ export default function CommunityAdmin() {
         )}
       </div>
 
-      {/* Right: Announcements */}
-      <div className="w-1/4 p-4 border-l border-gray-300">
-        <h2 className="text-xl font-bold mb-4">Announcements</h2>
-        {announcements.length === 0 && <div className="text-gray-500">No announcements</div>}
-        <ul className="space-y-3">
-          {announcements.map((a) => (
-            <li key={a._id || a.id} className="p-3 bg-white rounded shadow-sm">
-              <div className="font-semibold">{a.title}</div>
-              <div className="text-sm text-gray-700">{a.description}</div>
-              {a.location && <div className="text-xs text-gray-500">📍 {a.location}</div>}
-              {a.dateTime && <div className="text-xs text-gray-500">🗓 {new Date(a.dateTime).toLocaleString()}</div>}
-            </li>
-          ))}
-        </ul>
-      </div>
+      {/* Announcements panel removed from CommunityAdmin */}
     </div>
   );
 }

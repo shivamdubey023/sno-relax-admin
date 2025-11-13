@@ -36,3 +36,17 @@
     transform: rotate(360deg);
   }
 }
+
+/* Admin theme overrides */
+.admin-theme-dark {
+  background: #0b1220;
+  color: #ffffff;
+}
+.admin-theme-dark .border-gray-300 { border-color: rgba(255,255,255,0.06) !important; }
+.admin-theme-dark .bg-white { background: #0f1720 !important; }
+.admin-theme-dark .text-gray-500 { color: #cbd5e1 !important; }
+.admin-theme-dark .text-gray-700 { color: #cbd5e1 !important; }
+.admin-theme-dark .bg-gray-50 { background: rgba(255,255,255,0.02) !important; }
+.admin-theme-dark .bg-gray-200 { background: rgba(255,255,255,0.04) !important; }
+.admin-theme-dark .font-semibold { color: #fff; }
+.admin-theme-dark .stat-card { background: #071127 !important; border-color: rgba(255,255,255,0.04) !important; }

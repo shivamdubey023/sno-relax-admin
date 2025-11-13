@@ -1,6 +1,7 @@
 // src/pages/Dashboard.jsx
 import React, { useEffect, useState } from "react";
 import { getStats, getUsers, getContent, getChatStats } from "../services/api";
+import "./Dashboard.css";
 import {
   LineChart,
   Line,
@@ -13,6 +14,8 @@ import {
   Pie,
   Cell,
   Legend,
+  BarChart,
+  Bar,
 } from "recharts";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#AA336A"];
@@ -22,6 +25,7 @@ const Dashboard = () => {
   const [recentUsers, setRecentUsers] = useState([]);
   const [recentContent, setRecentContent] = useState([]);
   const [contentTypesData, setContentTypesData] = useState([]);
+  const [contentChartType, setContentChartType] = useState('pie');
   const [chatActivityData, setChatActivityData] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -69,103 +73,158 @@ const Dashboard = () => {
   if (loading) return <p>Loading dashboard...</p>;
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div className="admin-dashboard">
       <h1>Dashboard</h1>
 
       {/* Stats Cards */}
-      <div style={{ display: "flex", gap: "20px", marginTop: "20px" }}>
+      <div className="stats-grid">
         {["Users", "Chats", "Content"].map((type, index) => (
-          <div
-            key={index}
-            style={{ flex: 1, padding: "20px", background: "#f5f5f5", borderRadius: "10px" }}
-          >
+          <div key={index} className="stat-card">
             <h2>Total {type}</h2>
-            <p style={{ fontSize: "24px", fontWeight: "bold" }}>{stats[`total${type}`]}</p>
+            <div className="stat-value">{stats[`total${type}`]}</div>
           </div>
         ))}
       </div>
 
       {/* Recent Users Table */}
-      <Section title="Recent Users" data={recentUsers} columns={["name", "email", "createdAt"]} />
+      <div className="section">
+        <Section title="Recent Users" data={recentUsers} columns={["name", "email", "createdAt"]} />
+      </div>
 
       {/* Recent Content Table */}
-      <Section title="Recent Content" data={recentContent} columns={["title", "type", "createdAt"]} />
+      <div className="section">
+        <Section title="Recent Content" data={recentContent} columns={["title", "type", "createdAt"]} />
+      </div>
 
       {/* Charts */}
-      <div style={{ display: "flex", gap: "40px", marginTop: "40px", flexWrap: "wrap" }}>
-        <ChartCard title="Content Types Distribution">
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={contentTypesData}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={100}
-                label
-              >
-                {contentTypesData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        </ChartCard>
+      <div className="chart-grid">
+        <div className="chart-card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3>Content Types Distribution</h3>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <label style={{ fontSize: 12 }}>Chart:</label>
+              <select value={contentChartType} onChange={(e) => setContentChartType(e.target.value)}>
+                <option value="pie">Pie</option>
+                <option value="donut">Donut</option>
+                <option value="bar">Bar</option>
+              </select>
+            </div>
+          </div>
+          {contentTypesData && contentTypesData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              {contentChartType === 'bar' ? (
+                // horizontal bar-like layout using BarChart
+                <BarChart data={contentTypesData} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" />
+                  <YAxis dataKey="name" type="category" />
+                  <Tooltip />
+                  <Bar dataKey="value">{contentTypesData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}</Bar>
+                </BarChart>
+              ) : (
+                <PieChart>
+                  <Pie
+                    data={contentTypesData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={contentChartType === 'donut' ? 80 : 100}
+                    innerRadius={contentChartType === 'donut' ? 40 : 0}
+                    label
+                  >
+                    {contentTypesData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              )}
+            </ResponsiveContainer>
+          ) : (
+            <div className="table-wrap">
+              <p>No content distribution available to plot. Showing recent content instead.</p>
+              <table>
+                <thead>
+                  <tr><th>Title</th><th>Type</th><th>Date</th></tr>
+                </thead>
+                <tbody>
+                  {recentContent.length > 0 ? recentContent.map((c) => (
+                    <tr key={c._id || c.title}><td>{c.title}</td><td>{c.type}</td><td>{c.createdAt ? new Date(c.createdAt).toLocaleDateString() : ''}</td></tr>
+                  )) : <tr><td colSpan={3}>No content available</td></tr>}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
 
-        <ChartCard title="Chat Activity (Last 7 Days)">
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={chatActivityData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="day" />
-              <YAxis />
-              <Tooltip />
-              <Line type="monotone" dataKey="chats" stroke="#82ca9d" />
-            </LineChart>
-          </ResponsiveContainer>
-        </ChartCard>
+        <div className="chart-card">
+          <h3>Chat Activity (Last 7 Days)</h3>
+          {chatActivityData && chatActivityData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={chatActivityData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="day" />
+                <YAxis />
+                <Tooltip />
+                <Line type="monotone" dataKey="chats" stroke="#82ca9d" />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="table-wrap">
+              <p>No chat activity data available to plot. Showing top recent users instead.</p>
+              <table>
+                <thead>
+                  <tr><th>Name</th><th>Email</th><th>Joined</th></tr>
+                </thead>
+                <tbody>
+                  {recentUsers.length > 0 ? recentUsers.map((u) => (
+                    <tr key={u._id || u.email}><td>{u.name}</td><td>{u.email}</td><td>{u.createdAt ? new Date(u.createdAt).toLocaleDateString() : ''}</td></tr>
+                  )) : <tr><td colSpan={3}>No users available</td></tr>}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 };
 
-// Reusable section component for tables
+// Reusable section component for tables (uses CSS classes)
 const Section = ({ title, data, columns }) => (
-  <div style={{ marginTop: "40px" }}>
+  <div className="section">
     <h2>{title}</h2>
-    <table border="1" cellPadding="10" style={{ width: "100%", borderCollapse: "collapse" }}>
-      <thead>
-        <tr>
-          {columns.map((col) => (
-            <th key={col}>{col.charAt(0).toUpperCase() + col.slice(1)}</th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {data.map((item) => (
-          <tr key={item._id}>
+    <div className="table-wrap">
+      <table>
+        <thead>
+          <tr>
             {columns.map((col) => (
-              <td key={col}>
-                {col === "createdAt"
-                  ? new Date(item[col]).toLocaleDateString()
-                  : item[col]}
-              </td>
+              <th key={col}>{col.charAt(0).toUpperCase() + col.slice(1)}</th>
             ))}
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {data.map((item) => (
+            <tr key={item._id || JSON.stringify(item)}>
+              {columns.map((col) => (
+                <td key={col}>
+                  {col === "createdAt" && item[col]
+                    ? new Date(item[col]).toLocaleDateString()
+                    : item[col]}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   </div>
 );
 
-// Chart card wrapper for consistent styling
-const ChartCard = ({ title, children }) => (
-  <div style={{ flex: 1, minWidth: "300px" }}>
-    <h3>{title}</h3>
-    {children}
-  </div>
-);
+// (ChartCard removed — charts are rendered with .chart-card elements)
 
 export default Dashboard;

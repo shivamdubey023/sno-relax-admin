@@ -36,11 +36,27 @@ export const deleteGroupMongo = (id) => axios.delete(`${COMMUNITY_URL}/group/mon
 // Group messages (admin)
 export const fetchGroupMessages = (groupId) => axios.get(`${COMMUNITY_URL}/group/${groupId}/messages`).then(res => res.data);
 export const deleteGroupMessage = (groupId, messageId) => axios.delete(`${COMMUNITY_URL}/group/${groupId}/message/${messageId}`).then(res => res.data);
+export const fetchGroupMembers = (groupId) => axios.get(`${COMMUNITY_URL}/group/${groupId}/members`).then(res => res.data);
+export const removeGroupMember = (groupId, userId) => axios.delete(`${COMMUNITY_URL}/group/${groupId}/leave`, { data: { userId } }).then(res => res.data);
+export const updateGroupMongo = (groupId, data) => axios.put(`${COMMUNITY_URL}/group/${groupId}`, data).then(res => res.data);
+export const clearGroupMessages = (groupId) => axios.delete(`${COMMUNITY_URL}/group/${groupId}/messages`).then(res => res.data);
 
 // Announcements
 export const fetchAnnouncements = () => axios.get(`${API_URL}/announcements`).then(res => res.data);
 export const createAnnouncement = (data) => axios.post(`${API_URL}/announcement`, data).then(res => res.data);
 export const deleteAnnouncement = (id) => axios.delete(`${API_URL}/announcement/${id}`).then(res => res.data);
+
+// ------------------ SETTINGS ------------------
+export const getThemeSetting = () => axios.get(`${API_URL}/settings/theme`).then(res => res.data);
+export const updateThemeSetting = (theme) => axios.put(`${API_URL}/settings/theme`, { theme }).then(res => res.data);
+
+// ------------------ REPORTS ------------------
+export const getReports = () => axios.get(`${API_URL}/reports`).then(res => res.data);
+export const createReport = (data) => axios.post(`${API_URL}/report`, data).then(res => res.data);
+export const deleteReport = (id) => axios.delete(`${API_URL}/report/${id}`).then(res => res.data);
+
+// ------------------ RELATIONSHIPS / ANALYTICS ------------------
+export const getRelationshipsSummary = () => axios.get(`${API_URL}/relationships/summary`).then(res => res.data);
 
 // ------------------ PRIVATE MESSAGES (admin) ------------------
 export const fetchPrivateMessages = (userId) => axios.get(`${API_URL}/private-messages`, { params: { userId } }).then(res => res.data);
