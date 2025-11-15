@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
+import { API_ENDPOINTS, API_BASE } from "../config/api.config";
 
 const Community = () => {
   const [groups, setGroups] = useState([]);
@@ -54,7 +55,7 @@ const Community = () => {
 
   // Initialize Socket.IO for real-time messages
   useEffect(() => {
-    const newSocket = io(process.env.REACT_APP_API_BASE || "http://localhost:5000");
+    const newSocket = io(API_BASE || "http://localhost:5000");
     setSocket(newSocket);
 
     newSocket.on("connect", () => console.log("Connected to socket:", newSocket.id));
@@ -112,13 +113,13 @@ const Community = () => {
     
     (async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/community/group/${selectedGroup._id || selectedGroup.id}/messages`, {
+        const res = await fetch(`${API_BASE}/api/community/group/${selectedGroup._id || selectedGroup.id}/messages`, {
           credentials: "include"
         });
         const data = await res.json();
         setMessages(data.messages || data || []);
 
-        const mres = await fetch(`http://localhost:5000/api/community/group/${selectedGroup._id || selectedGroup.id}/members`, {
+        const mres = await fetch(`${API_BASE}/api/community/group/${selectedGroup._id || selectedGroup.id}/members`, {
           credentials: "include"
         });
         const memberData = await mres.json();
@@ -141,7 +142,7 @@ const Community = () => {
         // skip if input focused
         const active = document.activeElement;
         if (inputRef.current && active && inputRef.current.contains(active)) return;
-        const res = await fetch(`http://localhost:5000/api/community/group/${selectedGroup._id || selectedGroup.id}/messages`, {
+        const res = await fetch(`${API_BASE}/api/community/group/${selectedGroup._id || selectedGroup.id}/messages`, {
           credentials: "include"
         });
         if (!res.ok) return;
@@ -161,7 +162,7 @@ const Community = () => {
   const loadGroups = async () => {
     try {
       console.log("🔄 [loadGroups] Starting to load groups...");
-      const url = "http://localhost:5000/api/community/groups";
+      const url = `${API_BASE}/api/community/groups`;
       console.log("📍 [loadGroups] Fetching from URL:", url);
       
       const res = await fetch(url, {
@@ -219,7 +220,7 @@ const Community = () => {
 
   const loadAllUsers = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/users", {
+      const res = await fetch(`${API_BASE}/api/users`, {
         credentials: "include"
       });
       const data = await res.json();
@@ -236,7 +237,7 @@ const Community = () => {
 
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:5000/api/community/group", {
+      const res = await fetch(`${API_BASE}/api/community/group`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -270,7 +271,7 @@ const Community = () => {
   const deleteGroup = async (groupId) => {
     if (!window.confirm("Are you sure you want to delete this group?")) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/community/group/${groupId}`, {
+      const res = await fetch(`${API_BASE}/api/community/group/${groupId}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -290,7 +291,7 @@ const Community = () => {
   const editGroup = async () => {
     if (!selectedGroup) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/community/group/${selectedGroup._id}`, {
+      const res = await fetch(`${API_BASE}/api/community/group/${selectedGroup._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -313,7 +314,7 @@ const Community = () => {
     if (!selectedGroup) return;
     if (!window.confirm("Clear all messages in this group?")) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/community/group/${selectedGroup._id}/messages`, {
+      const res = await fetch(`${API_BASE}/api/community/group/${selectedGroup._id}/messages`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -332,7 +333,7 @@ const Community = () => {
   const deleteMessage = async (msgId) => {
     if (!window.confirm("Delete this message?")) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/community/message/${msgId}`, {
+      const res = await fetch(`${API_BASE}/api/community/message/${msgId}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -356,7 +357,7 @@ const Community = () => {
   const editMessage = async (msgId) => {
     if (!editingMessageText.trim()) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/community/message/${msgId}`, {
+      const res = await fetch(`${API_BASE}/api/community/message/${msgId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -385,7 +386,7 @@ const Community = () => {
     if (!selectedGroup) return;
     if (!window.confirm("Remove this member from the group?")) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/community/group/${selectedGroup._id}/member/remove`, {
+      const res = await fetch(`${API_BASE}/api/community/group/${selectedGroup._id}/member/remove`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -407,7 +408,7 @@ const Community = () => {
       const user = allUsers.find(u => u.userId === userIdToAdd);
       const nickname = user?.communityNickname || user?.firstName || "Anonymous";
       
-      const res = await fetch(`http://localhost:5000/api/community/group/${selectedGroup._id}/join`, {
+      const res = await fetch(`${API_BASE}/api/community/group/${selectedGroup._id}/join`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
