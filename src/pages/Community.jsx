@@ -12,6 +12,7 @@ const Community = () => {
   const [allUsers, setAllUsers] = useState([]);
   const [groupName, setGroupName] = useState("");
   const [groupDesc, setGroupDesc] = useState("");
+  const [groupIsPrivate, setGroupIsPrivate] = useState(false);
   const [messageInput, setMessageInput] = useState("");
   const [activeTab, setActiveTab] = useState("groups");
   const [editingMessageId, setEditingMessageId] = useState(null);
@@ -21,19 +22,34 @@ const Community = () => {
   const [editGroupName, setEditGroupName] = useState("");
   const [editGroupDesc, setEditGroupDesc] = useState("");
   const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
+  const [messagesMaxHeight, setMessagesMaxHeight] = useState("auto");
 
   const adminId = localStorage.getItem("adminId") || "admin";
 
   useEffect(() => {
     loadGroups();
     loadAllUsers();
-    
-    // Refresh groups every 5 seconds
+    // do not set an unconditional interval here — groups refresh will be controlled
+    // by a separate effect that respects the active tab to avoid interfering with typing
+    return () => {};
+  }, []);
+
+  // Refresh groups periodically only when not viewing messages (so typing isn't interrupted)
+  useEffect(() => {
+    if (activeTab === 'messages') return; // skip polling while viewing messages
     const interval = setInterval(() => {
-      loadGroups();
+      // Only refresh groups when admin is not on messages tab
+      if (activeTab !== 'messages') loadGroups();
     }, 5000);
-    
     return () => clearInterval(interval);
+  }, [activeTab]);
+
+  // Request notification permission for admin UI
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.Notification && Notification.permission === 'default') {
+      try { Notification.requestPermission(); } catch (e) { /* ignore */ }
+    }
   }, []);
 
   // Initialize Socket.IO for real-time messages
@@ -46,6 +62,16 @@ const Community = () => {
     newSocket.on("receiveGroupMessage", (msg) => {
       if (String(msg.groupId) === String(selectedGroup?._id || selectedGroup?.id)) {
         setMessages((prev) => [...prev, msg]);
+        // show desktop notification for messages not from admin
+        try {
+          const isFromMe = String(msg.senderId) === String(adminId);
+          if (!isFromMe && typeof window !== 'undefined' && window.Notification && Notification.permission === 'granted') {
+            const title = `${selectedGroup?.name || 'Group'} — ${msg.senderNickname || 'Anonymous'}`;
+            const body = (msg.message || '').slice(0, 140);
+            const n = new Notification(title, { body });
+            setTimeout(() => n.close(), 5000);
+          }
+        } catch (e) {}
       }
     });
 
@@ -54,12 +80,28 @@ const Community = () => {
     });
 
     return () => newSocket.disconnect();
-  }, [selectedGroup]);
+  }, [selectedGroup, adminId]);
 
   // Auto-scroll to latest message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // compute messages area height based on input height
+  useEffect(() => {
+    const updateHeight = () => {
+      try {
+        const inputH = inputRef.current ? inputRef.current.offsetHeight : 0;
+        const newH = window.innerHeight - inputH - 24; // small padding
+        setMessagesMaxHeight(newH > 200 ? `${newH}px` : "200px");
+      } catch (e) {
+        setMessagesMaxHeight("auto");
+      }
+    };
+    updateHeight();
+    window.addEventListener('resize', updateHeight);
+    return () => window.removeEventListener('resize', updateHeight);
+  }, [selectedGroup]);
 
   // Load selected group data via socket
   useEffect(() => {
@@ -88,6 +130,33 @@ const Community = () => {
 
     return () => socket.emit("leaveGroup", selectedGroup._id || selectedGroup.id);
   }, [socket, selectedGroup]);
+
+  // Poll messages every 2s when admin is viewing Messages tab. Skip poll when input is focused.
+  useEffect(() => {
+    if (!selectedGroup || activeTab !== 'messages') return;
+
+    let mounted = true;
+    const fetchMessages = async () => {
+      try {
+        // skip if input focused
+        const active = document.activeElement;
+        if (inputRef.current && active && inputRef.current.contains(active)) return;
+        const res = await fetch(`http://localhost:5000/api/community/group/${selectedGroup._id || selectedGroup.id}/messages`, {
+          credentials: "include"
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!mounted) return;
+        setMessages(data.messages || data || []);
+      } catch (e) {
+        // ignore
+      }
+    };
+
+    // initial fetch is already done elsewhere; start polling every 1s for continuous flow
+    const id = setInterval(fetchMessages, 1000);
+    return () => { mounted = false; clearInterval(id); };
+  }, [selectedGroup, activeTab]);
 
   const loadGroups = async () => {
     try {
@@ -174,16 +243,22 @@ const Community = () => {
         body: JSON.stringify({
           name: groupName,
           description: groupDesc,
-          createdBy: adminId
+          createdBy: adminId,
+          isPrivate: !!groupIsPrivate
         })
       });
       const newGroup = await res.json();
       setGroups(p => [...p, newGroup]);
       setGroupName("");
       setGroupDesc("");
+      setGroupIsPrivate(false);
       setShowCreateModal(false);
       setSelectedGroup(newGroup);
-      alert("Group created successfully");
+      if (newGroup.isPrivate && newGroup.inviteCode) {
+        alert(`Private group created. Invite code: ${newGroup.inviteCode}`);
+      } else {
+        alert("Group created successfully");
+      }
     } catch (err) {
       console.error("Error creating group:", err);
       alert("Failed to create group");
@@ -361,23 +436,13 @@ const Community = () => {
     try {
       setLoading(true);
       
-      // Send via socket for real-time update
+      // Send via socket for real-time update and persistence
       socket.emit("sendGroupMessage", { 
         groupId: selectedGroup._id, 
         senderId: adminId, 
-        message: messageInput 
-      });
-      
-      // Also send via HTTP for persistence
-      await fetch(`http://localhost:5000/api/community/group/${selectedGroup._id}/message`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          senderId: adminId,
-          senderNickname: "Admin",
-          message: messageInput
-        })
+        senderNickname: "Admin",
+        message: messageInput,
+        isAdmin: true,
       });
       
       setMessageInput("");
@@ -586,6 +651,31 @@ const Community = () => {
                     >
                       Delete
                     </button>
+                    {group.isPrivate && group.inviteCode && (
+                      <button
+                        onClick={() => {
+                          try {
+                            navigator.clipboard.writeText(group.inviteCode);
+                            alert('Invite code copied to clipboard');
+                          } catch (e) {
+                            prompt('Invite code:', group.inviteCode);
+                          }
+                        }}
+                        title="Copy invite code"
+                        style={{
+                          marginLeft: 8,
+                          padding: "6px 10px",
+                          background: "#a78bfa",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          fontSize: "12px"
+                        }}
+                      >
+                        🔒 Invite
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -692,7 +782,7 @@ const Community = () => {
             </div>
           )}
 
-          <div style={{ flex: 1, overflow: "auto", marginBottom: "20px", padding: "15px", background: "#f9fafb", borderRadius: "6px" }}>
+          <div style={{ overflow: "auto", marginBottom: "20px", padding: "15px", background: "#f9fafb", borderRadius: "6px", maxHeight: messagesMaxHeight }}>
             {messages.length === 0 ? (
               <p style={{ textAlign: "center", color: "#999" }}>No messages yet</p>
             ) : (
@@ -749,7 +839,12 @@ const Community = () => {
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
                         <div style={{ flex: 1 }}>
                           <p style={{ margin: "0 0 4px 0", fontWeight: "600", color: "#667eea" }}>
-                            {msg.senderNickname || "Anonymous"}
+                                {msg.senderNickname || "Anonymous"}
+                                {msg.isAdmin && (
+                                  <span style={{ marginLeft: 8, fontSize: 12, padding: '2px 6px', background: '#fef3c7', borderRadius: 6, color: '#92400e', fontWeight: 700 }}>
+                                    Official
+                                  </span>
+                                )}
                           </p>
                           <p style={{ margin: "0 0 6px 0", color: "#333", wordWrap: "break-word" }}>{msg.message}</p>
                           <p style={{ margin: "0", fontSize: "11px", color: "#999" }}>
@@ -799,6 +894,7 @@ const Community = () => {
               type="text"
               value={messageInput}
               onChange={(e) => setMessageInput(e.target.value)}
+              ref={inputRef}
               placeholder="Type message..."
               style={{
                 flex: 1,
@@ -987,6 +1083,10 @@ const Community = () => {
                   fontFamily: "inherit"
                 }}
               />
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <input type="checkbox" checked={groupIsPrivate} onChange={(e) => setGroupIsPrivate(e.target.checked)} />
+                <span style={{ fontSize: 13 }}>Private group (requires invite code to join)</span>
+              </label>
               <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
                 <button type="button" onClick={() => setShowCreateModal(false)} style={{
                   padding: "10px 20px",
