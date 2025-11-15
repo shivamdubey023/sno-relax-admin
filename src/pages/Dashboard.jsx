@@ -1,6 +1,7 @@
 // src/pages/Dashboard.jsx
 import React, { useEffect, useState } from "react";
 import { getStats, getUsers, getContent, getChatStats } from "../services/api";
+import { API_BASE } from "../config/api.config";
 import "./Dashboard.css";
 import {
   LineChart,
@@ -43,15 +44,35 @@ const Dashboard = () => {
         getChatStats(),
       ]);
 
-      // Fetch community groups data
+      // Fetch community groups data (use centralized API_BASE and handle multiple response shapes)
       let communityGroups = [];
       try {
-        const communityRes = await fetch("http://localhost:5000/api/community/groups", {
-          credentials: "include"
+        const communityRes = await fetch(`${API_BASE}/api/community/groups`, {
+          credentials: "include",
         });
-        communityGroups = await communityRes.json();
+
+        if (!communityRes.ok) {
+          const body = await communityRes.text().catch(() => "");
+          console.warn("Failed to fetch community groups: status", communityRes.status, body);
+        } else {
+          const cgData = await communityRes.json().catch(() => null);
+          if (Array.isArray(cgData)) {
+            communityGroups = cgData;
+          } else if (cgData && Array.isArray(cgData.groups)) {
+            communityGroups = cgData.groups;
+          } else if (cgData && Array.isArray(cgData.data)) {
+            communityGroups = cgData.data;
+          } else if (cgData && cgData.ok && Array.isArray(cgData.data)) {
+            communityGroups = cgData.data;
+          } else {
+            // Fallback: try to locate any array in the response object
+            const arr = Object.values(cgData || {}).find(v => Array.isArray(v));
+            communityGroups = Array.isArray(arr) ? arr : [];
+          }
+        }
       } catch (err) {
         console.warn("Failed to fetch community groups:", err);
+        communityGroups = [];
       }
 
       // Stats cards
