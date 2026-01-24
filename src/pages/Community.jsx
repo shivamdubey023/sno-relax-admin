@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
-import { API_ENDPOINTS, API_BASE } from "../config/api.config";
+import { API_BASE } from "../config/api.config";
 
 const Community = () => {
   const [groups, setGroups] = useState([]);

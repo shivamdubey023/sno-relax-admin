@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { BarChart3, Users, FileText, MessageSquare, Settings, Zap, MessageCircle, Users2, X } from "lucide-react";
+import { BarChart3, Users, FileText, MessageSquare, Settings, MessageCircle, Users2, X } from "lucide-react";
 
 const Sidebar = ({ onClose }) => {
   const location = useLocation();

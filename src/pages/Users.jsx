@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { getUsers, updateUser, deleteUser, getProfileChanges } from "../services/api";
 import UserTable from "../components/UserTable";
 
@@ -9,11 +9,7 @@ const Users = () => {
   const [duplicates, setDuplicates] = useState([]);
   const [showDuplicates, setShowDuplicates] = useState(false);
 
-  useEffect(() => {
-    fetchUsersAndChanges();
-  }, []);
-
-  const findDuplicates = (userList) => {
+  const findDuplicates = useCallback((userList) => {
     const emailMap = {};
     const phoneMap = {};
     const dups = [];
@@ -36,9 +32,9 @@ const Users = () => {
     });
 
     return dups;
-  };
+  }, []);
 
-  const fetchUsersAndChanges = async () => {
+  const fetchUsersAndChanges = useCallback(async () => {
     try {
       setLoading(true);
       const res = await getUsers();
@@ -69,7 +65,11 @@ const Users = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [findDuplicates]);
+
+  useEffect(() => {
+    fetchUsersAndChanges();
+  }, [fetchUsersAndChanges]);
 
   const handleBan = async (id, status) => {
     try {
