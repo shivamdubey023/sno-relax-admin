@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { getStats, getUsers, getContent, getChatStats } from "../services/api";
 import { API_BASE } from "../config/api.config";
+import socketService from "../services/socketService";
 import "./Dashboard.css";
 import {
   LineChart,
@@ -29,10 +30,76 @@ const Dashboard = () => {
   const [contentChartType, setContentChartType] = useState('pie');
   const [chatActivityData, setChatActivityData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isConnected, setIsConnected] = useState(false);
+  const [realTimeActivity, setRealTimeActivity] = useState([]);
+  const [activeUsers, setActiveUsers] = useState(0);
 
   useEffect(() => {
     fetchDashboardData();
+    connectWebSocket();
+
+    return () => {
+      socketService.disconnect();
+    };
   }, []);
+
+  const connectWebSocket = () => {
+    socketService.connect();
+
+    // Authenticate with admin credentials
+    const adminId = localStorage.getItem('adminId') || 'admin';
+    socketService.socket?.emit('authenticate', {
+      adminToken: localStorage.getItem('adminToken'),
+      adminId
+    });
+
+    // Join admin room for real-time updates
+    socketService.socket?.emit('joinAdminRoom', { adminId });
+
+    // Listen for real-time stats updates
+    socketService.on('statsUpdate', (data) => {
+      if (data) {
+        setStats({
+          totalUsers: data.totalUsers,
+          totalChats: data.totalChats,
+          totalContent: data.totalContent,
+          totalCommunityGroups: data.totalCommunityGroups,
+          totalCommunityMembers: data.totalCommunityMembers,
+        });
+        setActiveUsers(data.activeUsers || 0);
+        setIsConnected(true);
+      }
+    });
+
+    // Listen for user activity
+    socketService.on('userActivity', (activity) => {
+      setRealTimeActivity(prev => [activity, ...prev.slice(0, 9)]);
+    });
+
+    // Listen for new users
+    socketService.on('newUser', (user) => {
+      setRecentUsers(prev => [user, ...prev.slice(0, 4)]);
+      setStats(prev => ({ ...prev, totalUsers: prev.totalUsers + 1 }));
+    });
+
+    // Listen for new content
+    socketService.on('newContent', (content) => {
+      setRecentContent(prev => [content, ...prev.slice(0, 4)]);
+      setStats(prev => ({ ...prev, totalContent: prev.totalContent + 1 }));
+    });
+
+    // Listen for chat activity
+    socketService.on('chatActivity', (chat) => {
+      setStats(prev => ({ ...prev, totalChats: prev.totalChats + 1 }));
+    });
+
+    // Check connection status
+    const checkConnection = setInterval(() => {
+      setIsConnected(socketService.isConnected);
+    }, 1000);
+
+    return () => clearInterval(checkConnection);
+  };
 
   const fetchDashboardData = async () => {
     setLoading(true);
@@ -115,6 +182,19 @@ const Dashboard = () => {
 
   return (
     <div className="admin-dashboard">
+      {/* Connection Status Header */}
+      <div className="connection-status">
+        <div className="status-indicator">
+          <div className={`status-dot ${isConnected ? 'connected' : 'disconnected'}`}></div>
+          <span className="status-text">
+            {isConnected ? '🟢 Live Updates Active' : '🔴 Connecting...'}
+          </span>
+        </div>
+        <div className="active-users">
+          👥 Active Users (24h): {activeUsers}
+        </div>
+      </div>
+
       <h1>Dashboard</h1>
 
       {/* Stats Cards */}
@@ -132,6 +212,41 @@ const Dashboard = () => {
         <div className="stat-card" style={{ background: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)", color: "white" }}>
           <h2 style={{ color: "white" }}>Community Members</h2>
           <div className="stat-value" style={{ color: "white" }}>{stats.totalCommunityMembers}</div>
+        </div>
+      </div>
+
+      {/* Real-time Activity Feed */}
+      <div className="activity-section">
+        <div className="activity-header">
+          <h2>🔴 Live Activity Feed</h2>
+          <div className="activity-count">{realTimeActivity.length} recent events</div>
+        </div>
+        <div className="activity-feed">
+          {realTimeActivity.length > 0 ? (
+            realTimeActivity.map((activity, index) => (
+              <div key={index} className="activity-item">
+                <div className="activity-icon">
+                  {activity.type === 'user' && '👤'}
+                  {activity.type === 'chat' && '💬'}
+                  {activity.type === 'content' && '📄'}
+                  {activity.type === 'community' && '👥'}
+                </div>
+                <div className="activity-content">
+                  <div className="activity-message">{activity.message}</div>
+                  <div className="activity-time">
+                    {new Date(activity.timestamp).toLocaleTimeString()}
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="no-activity">
+              <div className="no-activity-icon">📡</div>
+              <div className="no-activity-text">
+                {isConnected ? 'Waiting for activity...' : 'Connecting to live feed...'}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
