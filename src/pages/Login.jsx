@@ -1,22 +1,34 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { loginAdmin } from "../services/api";
 
 const Login = () => {
   const [adminId, setAdminId] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
 
-    // Hardcoded admin credentials
-    if (adminId === "admin" && password === "pass") {
-      localStorage.setItem("adminToken", "dummyToken"); // save dummy token
-      localStorage.setItem("adminId", adminId); // persist admin id so other admin pages can reference it
-      navigate("/"); // redirect to dashboard
-    } else {
-      setError("Invalid admin ID or password");
+    try {
+      const response = await loginAdmin({ adminId, password });
+      
+      if (response.data && response.data.token) {
+        localStorage.setItem("adminToken", response.data.token);
+        localStorage.setItem("adminId", adminId);
+        navigate("/");
+      } else {
+        setError("Invalid admin credentials");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setError(err.response?.data?.error || "Login failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -41,8 +53,8 @@ const Login = () => {
           required
           style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
         />
-        <button type="submit" style={{ width: "100%", padding: "8px" }}>
-          Login
+        <button type="submit" style={{ width: "100%", padding: "8px" }} disabled={loading}>
+          {loading ? "Logging in..." : "Login"}
         </button>
       </form>
     </div>
