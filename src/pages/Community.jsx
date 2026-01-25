@@ -61,8 +61,12 @@ const Community = () => {
     newSocket.on("connect", () => console.log("Connected to socket:", newSocket.id));
 
     newSocket.on("receiveGroupMessage", (msg) => {
-      if (String(msg.groupId) === String(selectedGroup?._id || selectedGroup?.id)) {
-        setMessages((prev) => [...prev, msg]);
+      if (selectedGroup && String(msg.groupId) === String(selectedGroup._id || selectedGroup.id)) {
+        setMessages((prev) => {
+          // Avoid duplicates
+          if (prev.some(m => String(m._id || m.id) === String(msg._id || msg.id))) return prev;
+          return [...prev, msg];
+        });
         // show desktop notification for messages not from admin
         try {
           const isFromMe = String(msg.senderId) === String(adminId);
@@ -81,7 +85,20 @@ const Community = () => {
     });
 
     return () => newSocket.disconnect();
-  }, [selectedGroup, adminId]);
+  }, []); // Remove selectedGroup dependency
+
+  // Handle joining/leaving groups
+  useEffect(() => {
+    if (!socket || !selectedGroup) return;
+
+    socket.emit("joinGroup", selectedGroup._id || selectedGroup.id);
+
+    return () => {
+      if (socket) {
+        socket.emit("leaveGroup", selectedGroup._id || selectedGroup.id);
+      }
+    };
+  }, [socket, selectedGroup]);
 
   // Auto-scroll to latest message
   useEffect(() => {
@@ -131,33 +148,6 @@ const Community = () => {
 
     return () => socket.emit("leaveGroup", selectedGroup._id || selectedGroup.id);
   }, [socket, selectedGroup]);
-
-  // Poll messages every 2s when admin is viewing Messages tab. Skip poll when input is focused.
-  useEffect(() => {
-    if (!selectedGroup || activeTab !== 'messages') return;
-
-    let mounted = true;
-    const fetchMessages = async () => {
-      try {
-        // skip if input focused
-        const active = document.activeElement;
-        if (inputRef.current && active && inputRef.current.contains(active)) return;
-        const res = await fetch(`${API_BASE}/api/community/group/${selectedGroup._id || selectedGroup.id}/messages`, {
-          credentials: "include"
-        });
-        if (!res.ok) return;
-        const data = await res.json();
-        if (!mounted) return;
-        setMessages(data.messages || data || []);
-      } catch (e) {
-        // ignore
-      }
-    };
-
-    // initial fetch is already done elsewhere; start polling every 1s for continuous flow
-    const id = setInterval(fetchMessages, 1000);
-    return () => { mounted = false; clearInterval(id); };
-  }, [selectedGroup, activeTab]);
 
   const loadGroups = async () => {
     try {
