@@ -27,6 +27,17 @@ const Community = () => {
   const [messagesMaxHeight, setMessagesMaxHeight] = useState("auto");
 
   const adminId = localStorage.getItem("adminId") || "admin";
+  const selectedGroupRef = useRef(selectedGroup);
+  const adminIdRef = useRef(adminId);
+
+  // Keep refs updated
+  useEffect(() => {
+    selectedGroupRef.current = selectedGroup;
+  }, [selectedGroup]);
+
+  useEffect(() => {
+    adminIdRef.current = adminId;
+  }, [adminId]);
 
   useEffect(() => {
     loadGroups();
@@ -61,7 +72,8 @@ const Community = () => {
     newSocket.on("connect", () => console.log("Connected to socket:", newSocket.id));
 
     newSocket.on("receiveGroupMessage", (msg) => {
-      if (selectedGroup && String(msg.groupId) === String(selectedGroup._id || selectedGroup.id)) {
+      const currentSelectedGroup = selectedGroupRef.current;
+      if (currentSelectedGroup && String(msg.groupId) === String(currentSelectedGroup._id || currentSelectedGroup.id)) {
         setMessages((prev) => {
           // Avoid duplicates
           if (prev.some(m => String(m._id || m.id) === String(msg._id || msg.id))) return prev;
@@ -69,9 +81,10 @@ const Community = () => {
         });
         // show desktop notification for messages not from admin
         try {
-          const isFromMe = String(msg.senderId) === String(adminId);
+          const currentAdminId = adminIdRef.current;
+          const isFromMe = String(msg.senderId) === String(currentAdminId);
           if (!isFromMe && typeof window !== 'undefined' && window.Notification && Notification.permission === 'granted') {
-            const title = `${selectedGroup?.name || 'Group'} — ${msg.senderNickname || 'Anonymous'}`;
+            const title = `${currentSelectedGroup?.name || 'Group'} — ${msg.senderNickname || 'Anonymous'}`;
             const body = (msg.message || '').slice(0, 140);
             const n = new Notification(title, { body });
             setTimeout(() => n.close(), 5000);
@@ -85,7 +98,7 @@ const Community = () => {
     });
 
     return () => newSocket.disconnect();
-  }, []); // Remove selectedGroup dependency
+  }, []); // Dependencies handled via refs
 
   // Handle joining/leaving groups
   useEffect(() => {
