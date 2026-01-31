@@ -1,189 +1,96 @@
-# SnoRelax Admin Panel
+# SNO-RELAX — Admin Panel
 
-A comprehensive admin dashboard for managing the SnoRelax mental health and wellness platform. This React-based application provides administrators with tools to monitor users, manage content, oversee community interactions, and analyze platform analytics.
+**SNO-RELAX** — AI-Assisted Mental Health & Wellness Platform
 
-## 🌟 Features
+**Module:** Admin (Administrative web interface)
 
-### User Management
-- View and manage all registered users
-- User profile editing and deletion
-- Monitor user activity and engagement
+**Status:** Final Year Project — Final submission ready
 
-### Content Management
-- Create, edit, and delete platform content
-- Manage media uploads and content categorization
-- Content approval workflow
+---
 
-### Community Oversight
-- Monitor community groups and discussions
-- Manage group memberships and moderation
-- Handle announcements and community policies
+## Summary
+The Admin Panel provides moderators and administrators a central interface for managing users, content, community moderation, platform settings, and analytics. It supports real-time updates (Socket.IO), configuration (including server theme fallback), and moderation workflows.
 
-### Analytics & Reporting
-- Real-time dashboard with key metrics
-- User engagement analytics with charts
-- Chat statistics and usage reports
-- Generate and manage reports
+> **Academic Declaration:** This module is part of the Final Year Project "SNO-RELAX" and is prepared for academic submission.
 
-### Communication Tools
-- Private messaging system for admin-user communication
-- Real-time notifications via Socket.io
-- Admin announcements and popups
+---
 
-### Settings & Configuration
-- Theme management (light/dark mode)
-- Platform-wide settings
-- Admin authentication and security
+## Key Features
+- User management (view, edit, suspend)
+- Content moderation and approval workflows
+- Community and group moderation tools
+- Reporting and analytics dashboard
+- Settings and theme configuration (server-side fallback & client-side preference)
+- Real-time notifications and messaging via Socket.IO
 
-## 🛠 Tech Stack
+---
 
-- **Frontend**: React 19, React Router DOM
-- **Styling**: CSS Modules, Responsive Design
-- **Charts**: Recharts for data visualization
-- **HTTP Client**: Axios for API communication
-- **Real-time**: Socket.io Client for live updates
-- **Icons**: Lucide React
-- **Build Tool**: Create React App
+## Tech Stack
+- React (Create React App)
+- Axios for API communication
+- Socket.IO client for real-time events
+- Charting library for analytics (Recharts / Chart.js as applicable)
+- Lucide React for icons
 
-## 📋 Prerequisites
+---
 
-- Node.js (v18 or higher)
-- npm or yarn
-- Running SnoRelax backend server
-
-## 🚀 Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd sno-relax-admin
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Environment Setup**
-   Create a `.env` file in the root directory:
-   ```env
-   REACT_APP_API_BASE=http://localhost:5000
-   ```
-
-4. **Start the development server**
-   ```bash
-   npm start
-   ```
-
-   The admin panel will be available at [http://localhost:3001](http://localhost:3001)
-
-## 📖 Usage
-
-### Admin Login
-- Default credentials: `admin` / `pass`
-- Access the login page and enter admin credentials
-
-### Navigation
-- **Dashboard**: Overview of platform metrics and recent activity
-- **Users**: Manage user accounts and profiles
-- **Content**: Create and manage platform content
-- **Community**: Oversee groups, messages, and announcements
-- **Reports**: View and manage user reports
-- **Settings**: Configure platform settings and themes
-
-### Key Features Usage
-- **Real-time Updates**: The dashboard updates in real-time using WebSocket connections
-- **Data Visualization**: Interactive charts show user engagement and platform usage
-- **User Management**: Search, filter, and modify user accounts
-- **Content Moderation**: Approve or remove inappropriate content
-- **Community Management**: Monitor discussions and manage group memberships
-
-## 🔧 Available Scripts
-
-### Development
+## Quick Start (Development)
+1. Install dependencies
 ```bash
-npm start          # Start development server
-npm test           # Run test suite
-npm run build      # Build for production
-npm run eject      # Eject from Create React App
+npm install
 ```
 
-### Code Quality
+2. Start the development server
 ```bash
-npm run lint       # Run ESLint
+npm start
 ```
 
-## 🌐 API Integration
-
-The admin panel communicates with the SnoRelax backend API. Key endpoints include:
-
-- `/api/admin/login` - Admin authentication
-- `/api/admin/users` - User management
-- `/api/admin/content` - Content management
-- `/api/admin/community` - Community oversight
-- `/api/admin/reports` - Report management
-- `/api/admin/stats` - Analytics data
-
-## 📁 Project Structure
-
+3. Environment variables
+Create a `.env` file (if needed):
 ```
-sno-relax-admin/
-├── public/                 # Static assets
-├── src/
-│   ├── components/         # Reusable UI components
-│   │   ├── AnalyticsChart.jsx
-│   │   ├── ContentTable.jsx
-│   │   ├── ProtectedRoute.jsx
-│   │   ├── Sidebar.jsx
-│   │   ├── Topbar.jsx
-│   │   └── UserTable.jsx
-│   ├── config/            # Configuration files
-│   │   └── api.config.js
-│   ├── pages/             # Main application pages
-│   │   ├── Dashboard.jsx
-│   │   ├── Login.jsx
-│   │   ├── Users.jsx
-│   │   ├── Content.jsx
-│   │   ├── Community.jsx
-│   │   ├── Reports.jsx
-│   │   ├── Settings.jsx
-│   │   ├── PrivateMessages.jsx
-│   │   └── ProfileChanges.jsx
-│   ├── services/          # API and socket services
-│   │   ├── api.js
-│   │   └── socketService.js
-│   ├── styles/            # CSS stylesheets
-│   │   └── admin.css
-│   ├── App.js             # Main application component
-│   └── index.js           # Application entry point
-├── package.json
-└── README.md
+REACT_APP_API_BASE=http://localhost:5000
+PORT=3001
 ```
 
-## 🔒 Security Features
+The admin UI typically runs on `http://localhost:3001` when port is configured accordingly.
 
-- Protected routes with authentication checks
-- Admin-only access to sensitive operations
-- Secure API communication with token-based auth
-- Input validation and sanitization
+---
 
-## 🤝 Contributing
+## Production
+Build for production
+```bash
+npm run build
+```
+Deploy the `build/` directory using a static server or hosting platform.
 
+---
+
+## Scripts
+- `npm start` — start dev server
+- `npm test` — run tests
+- `npm run build` — build for production
+- `npm run lint` — run linters (if configured)
+
+---
+
+## Security & Best Practices
+- Only authenticated admins should access the admin dashboard; server enforces role-based checks for sensitive endpoints.
+- Avoid storing secrets in client code; use server configurations for privileged operations.
+
+---
+
+## Contributing
+To contribute:
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a branch (`git checkout -b feature/your-feature`)
+3. Commit & push, then open a PR
 
-## 📝 License
+---
 
-This project is licensed under the AKTU License - see the [LICENSE](LICENSE) file for details.
+## Credits
+- Project Creator / Lead Developer: **Shivam Kumar Dubey** — GitHub: https://github.com/shivamdubey023
+- Co-Creator: **Suryakant Mishra**
 
-## 📞 Support
+---
 
-For support and questions, please contact the development team or create an issue in the repository.
-
-## 🔄 Related Projects
-
-- [SnoRelax Client](https://github.com/shivamdubey023/sno-relax-client) - User-facing application
-- [SnoRelax Server](https://github.com/shivamdubey023/sno-relax-server) - Backend API server
+For full academic documentation and architecture details, see the top-level `SNO-RELAX/` folder in this repository.

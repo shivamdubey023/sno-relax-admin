@@ -56,8 +56,8 @@
   width: 240px;
   height: 100vh;
   min-height: 100vh;
-  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
-  color: white;
+  background: var(--app-gradient, linear-gradient(135deg, #1f2937 0%, #111827 100%));
+  color: var(--app-foreground, white);
   padding: 24px 16px;
   box-shadow: 2px 0 8px rgba(0,0,0,0.15);
   display: flex;
@@ -66,13 +66,13 @@
 }
 
 .sidebar-logo h1{margin:0;font-size:clamp(16px,5vw,20px);font-weight:700}
-.sidebar-logo p{margin:4px 0 0 0;font-size:clamp(10px,3vw,11px);color:#9ca3af;font-weight:500}
-
-.sidebar-nav .nav-title{font-size:clamp(10px,2vw,10px);font-weight:600;color:#6b7280;text-transform:uppercase;margin-bottom:12px;letter-spacing:0.5}
+.sidebar-logo p{margin:4px 0 0 0;font-size:clamp(10px,3vw,11px);color:var(--muted-text, #9ca3af);font-weight:500}
+.sidebar-close{position:absolute;top:16px;right:16px;background:transparent;border:none;color:var(--app-foreground, white);cursor:pointer}
+.sidebar-close:focus{outline:2px solid var(--accent-primary, #3b82f6);border-radius:6px}.sidebar-nav .nav-title{font-size:clamp(10px,2vw,10px);font-weight:600;color:#6b7280;text-transform:uppercase;margin-bottom:12px;letter-spacing:0.5}
 .sidebar-nav ul{list-style:none;padding:0;margin:0}
 .sidebar-nav li{margin-bottom:8px}
-.nav-link{display:flex;align-items:center;gap:10px;padding:clamp(8px,2vw,10px) clamp(10px,2vw,12px);border-radius:6px;text-decoration:none;color:#d1d5db;background:transparent;border-left:3px solid transparent;padding-left:clamp(10px,2vw,12px);transition:all 0.2s ease;font-size:clamp(12px,3vw,13px);font-weight:500}
-.nav-link:hover{background:rgba(75,85,99,0.08);color:#fff}
+.nav-link{display:flex;align-items:center;gap:10px;padding:clamp(8px,2vw,10px) clamp(10px,2vw,12px);border-radius:6px;text-decoration:none;color:var(--text-secondary, #d1d5db);background:transparent;border-left:3px solid transparent;padding-left:clamp(10px,2vw,12px);transition:all 0.2s ease;font-size:clamp(12px,3vw,13px);font-weight:500}
+.nav-link:hover{background:var(--hover-bg, rgba(75,85,99,0.08));color:var(--text-primary, #fff)}
 .nav-link.active{background:rgba(59,130,246,0.18);color:#fff;border-left:3px solid #3b82f6;padding-left:calc(clamp(10px,2vw,12px)-3px);font-weight:600}
 
 .sidebar-footer{padding-top:16px;border-top:1px solid rgba(255,255,255,0.1);font-size:clamp(10px,2vw,11px);color:#9ca3af}

@@ -25,15 +25,6 @@ const Sidebar = ({ onClose }) => {
         <button
           onClick={onClose}
           className="sidebar-close"
-          style={{
-            position: "absolute",
-            top: 16,
-            right: 16,
-            background: "transparent",
-            border: "none",
-            color: "white",
-            cursor: "pointer"
-          }}
         >
           <X size={24} />
         </button>
