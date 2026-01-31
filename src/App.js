@@ -8,6 +8,7 @@ import Users from "./pages/Users";
 import Content from "./pages/Content";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
+import AdminProfile from "./pages/AdminProfile";
 import Login from "./pages/Login";
 import Community from "./pages/Community";
 import PrivateMessages from "./pages/PrivateMessages";
@@ -110,6 +111,14 @@ function App() {
           element={
             <ProtectedRoute>
               <LayoutRoute element={Settings} />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/admin-profile" 
+          element={
+            <ProtectedRoute>
+              <LayoutRoute element={AdminProfile} />
             </ProtectedRoute>
           } 
         />
