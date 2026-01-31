@@ -55,20 +55,20 @@ const Topbar = ({ onMenuClick }) => {
       {onMenuClick && (
         <button
           onClick={onMenuClick}
+          aria-label="Open menu"
           style={{
             background: "transparent",
             border: "1px solid #e5e7eb",
             padding: "8px 12px",
             borderRadius: 6,
             cursor: "pointer",
-            display: "none",
             color: "#6b7280"
           }}
           className="menu-button-mobile"
         >
           <Menu size={20} />
         </button>
-      )}
+      )} 
 
       {/* Left Side - Page Title */}
       <div style={{ minWidth: "200px" }}>

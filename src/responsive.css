@@ -14,10 +14,20 @@
     background: linear-gradient(135deg, #1f2937 0%, #111827 100%) !important;
     padding: 24px 16px !important;
     overflow-y: auto !important;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.2) !important;
   }
 
   .sidebar-container.open {
     left: 0 !important;
+  }
+
+  /* Backdrop overlay for mobile when sidebar is open */
+  .sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 900;
+    transition: opacity 0.2s ease;
   }
 
   /* Show hamburger menu button */

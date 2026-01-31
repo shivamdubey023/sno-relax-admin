@@ -22,9 +22,20 @@ function AppLayout({ children }) {
 
   return (
     <div className="app-layout" style={{ display: "flex", height: "100vh", background: "#f9fafb" }}>
-      <div className="sidebar-container" style={sidebarOpen ? { left: 0 } : {}}>
+      <div className={`sidebar-container ${sidebarOpen ? "open" : ""}`} aria-hidden={!sidebarOpen}>
         <Sidebar onClose={() => setSidebarOpen(false)} />
       </div>
+
+      {/* Backdrop for mobile when sidebar is open */}
+      {sidebarOpen && (
+        <div
+          className="sidebar-backdrop"
+          onClick={() => setSidebarOpen(false)}
+          role="button"
+          aria-label="Close sidebar"
+        />
+      )}
+
       <div className="main-wrapper" style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         <Topbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
         <main className="main-content" style={{ flex: 1, overflow: "auto", padding: 0 }}>
