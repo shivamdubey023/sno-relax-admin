@@ -12,7 +12,7 @@ class SocketService {
 
     const serverUrl = process.env.NODE_ENV === 'production'
       ? 'https://sno-relax-server.onrender.com'
-      : 'http://localhost:5000';
+      : (process.env.REACT_APP_API_BASE?.split(',')[0]?.trim() || 'http://localhost:10000');
 
     this.socket = io(serverUrl, {
       transports: ['websocket', 'polling'],

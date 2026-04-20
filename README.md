@@ -48,7 +48,7 @@ npm start
 3. Environment variables
 Create a `.env` file (if needed):
 ```
-REACT_APP_API_BASE=http://localhost:5000
+REACT_APP_API_BASE=http://localhost:10000
 PORT=3001
 ```
 

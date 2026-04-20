@@ -66,7 +66,7 @@ const Community = () => {
 
   // Initialize Socket.IO for real-time messages
   useEffect(() => {
-    const newSocket = io(API_BASE || "http://localhost:5000");
+    const newSocket = io(API_BASE || "http://localhost:10000");
     setSocket(newSocket);
 
     newSocket.on("connect", () => console.log("Connected to socket:", newSocket.id));
