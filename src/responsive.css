@@ -1,5 +1,70 @@
 /* ==================== RESPONSIVE STYLES ==================== */
 
+/* iOS Safe Area Support */
+@supports (padding: max(0px)) {
+  .app-layout {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .topbar {
+    padding-top: max(12px, env(safe-area-inset-top));
+  }
+}
+
+/* PWA install prompt styling */
+.pwa-install-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #1f2937;
+  color: white;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 9999;
+  box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
+}
+
+.pwa-install-banner button {
+  background: #6366f1;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Disable pull-to-refresh on mobile */
+body {
+  overscroll-behavior-y: contain;
+}
+
+/* Safe area for notch devices */
+@media (display-mode: standalone) {
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Touch-action optimization */
+.touch-scroll {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
 /* Tablet Breakpoint: 768px */
 @media (max-width: 768px) {
   /* Hide sidebar on tablets and mobile, use hamburger menu instead */

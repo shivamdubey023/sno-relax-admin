@@ -91,3 +91,13 @@ export const logProfileChange = (userId, fieldName, oldValue, newValue, changedB
 // ------------------ PRIVATE MESSAGES (admin) ------------------
 export const fetchPrivateMessages = (userId) => apiClient.get(`${API_URL}/private-messages`, { params: { userId } }).then(res => res.data);
 export const sendPrivateMessageAdmin = (payload) => apiClient.post(`${API_URL}/private-message`, payload).then(res => res.data);
+
+// ------------------ ANALYTICS ------------------
+export const getAnalyticsDashboard = () => apiClient.get(`${API_URL}/analytics/dashboard`).then(res => res.data);
+export const getUsersTrend = (days = 30) => apiClient.get(`${API_URL}/analytics/users-trend`, { params: { days } }).then(res => res.data);
+export const getActivityTrend = () => apiClient.get(`${API_URL}/analytics/activity-trend`).then(res => res.data);
+export const getContentStats = () => apiClient.get(`${API_URL}/analytics/content-stats`).then(res => res.data);
+export const getCommunityStats = () => apiClient.get(`${API_URL}/analytics/community-stats`).then(res => res.data);
+export const getMoodStats = () => apiClient.get(`${API_URL}/analytics/mood-stats`).then(res => res.data);
+export const getReportStats = () => apiClient.get(`${API_URL}/analytics/report-stats`).then(res => res.data);
+export const getTopUsers = (limit = 10) => apiClient.get(`${API_URL}/analytics/top-users`, { params: { limit } }).then(res => res.data);

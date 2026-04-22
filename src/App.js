@@ -13,8 +13,9 @@ import Login from "./pages/Login";
 import Community from "./pages/Community";
 import PrivateMessages from "./pages/PrivateMessages";
 import ProfileChanges from "./pages/ProfileChanges";
+import Analytics from "./pages/Analytics";
 import ProtectedRoute from "./components/ProtectedRoute";
-import "./App.css";
+import "./styles/design-system.css";
 import "./responsive.css";
 
 // ---------------- Layout ----------------
@@ -135,6 +136,14 @@ function App() {
           element={
             <ProtectedRoute>
               <LayoutRoute element={PrivateMessages} />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/analytics" 
+          element={
+            <ProtectedRoute>
+              <LayoutRoute element={Analytics} />
             </ProtectedRoute>
           } 
         />
